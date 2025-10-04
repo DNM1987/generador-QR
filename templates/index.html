@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generador QR Personalizado</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- QR Code Styling JS -->
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+  <style>
+    body {
+      background-color: #e9f0f7;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px 40px;
+      max-width: 720px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    #qr-code {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      color: #0d6efd;
+      font-weight: 700;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container shadow-sm">
+    <h1>Generador QR Personalizado</h1>
+
+    <div class="mb-3">
+      <label for="url-input" class="form-label">O ingresa una URL directamente:</label>
+      <input type="url" id="url-input" placeholder="https://example.com" class="form-control" />
+      <button id="generate-url-btn" type="button" class="btn btn-primary mt-2 w-100">Generar QR desde URL</button>
+    </div>
+
+    <div class="mb-3">
+      <label for="file-input" class="form-label">Sube un archivo para generar URL (backend requerido):</label>
+      <input type="file" id="file-input" class="form-control" />
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label for="size" class="form-label">Tamaño QR (px):</label>
+        <input type="number" id="size" value="300" min="100" max="500" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <label for="color-dark" class="form-label">Color QR:</label>
+        <input type="color" id="color-dark" value="#000000" class="form-control form-control-color p-0" title="Color del código QR" />
+      </div>
+      <div class="col-md-4">
+        <label for="color-light" class="form-label">Color fondo:</label>
+        <input type="color" id="color-light" value="#ffffff" class="form-control form-control-color p-0" title="Color del fondo" />
+      </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+      <div class="col-md-6">
+        <label for="error-level" class="form-label">Nivel corrección de error:</label>
+        <select id="error-level" class="form-select">
+          <option value="L">Bajo (L)</option>
+          <option value="M" selected>Medio (M)</option>
+          <option value="Q">Alto (Q)</option>
+          <option value="H">Muy Alto (H)</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="eye-shape" class="form-label">Diseño de ojos:</label>
+        <select id="eye-shape" class="form-select">
+          <option value="square" selected>Cuadrado</option>
+          <option value="circle">Círculo</option>
+          <option value="diamond">Diamante</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+      <div class="col-md-6">
+        <label for="pattern-shape" class="form-label">Diseño de patrón:</label>
+        <select id="pattern-shape" class="form-select">
+          <option value="square" selected>Cuadrado</option>
+          <option value="dots">Puntos</option>
+          <option value="rounded">Redondeado</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="logo-upload" class="form-label">Subir logo para el centro (PNG/JPG):</label>
+        <input type="file" id="logo-upload" accept="image/png, image/jpeg" class="form-control" />
+      </div>
+    </div>
+
+    <div class="mb-3 mt-3">
+      <label for="logo-opacity" class="form-label">Opacidad logo (0-1):</label>
+      <input type="number" id="logo-opacity" min="0" max="1" step="0.1" value="0.6" class="form-control" />
+    </div>
+
+    <div id="qr-code"></div>
+
+    <button id="download-png" disabled type="button" class="btn btn-success mt-3 w-100">Descargar PNG</button>
+    <button id="download-svg" disabled type="button" class="btn btn-secondary mt-2 w-100">Descargar SVG</button>
+  </div>
+
+  <script>
+    let qrData = "";
+    let logoImage = "";
+
+    const qrCode = new QRCodeStyling({
+      width: 300,
+      height: 300,
+      data: "",
+      image: "",
+      dotsOptions: {
+        color: "#000000",
+        type: "square"
+      },
+      cornersSquareOptions: {
+        type: "square",
+        color: "#000000"
+      },
+      backgroundOptions: {
+        color: "#ffffff"
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 5,
+        opacity: 0.6
+      },
+      qrOptions: {
+        errorCorrectionLevel: "M"
+      }
+    });
+
+    qrCode.append(document.getElementById("qr-code"));
+
+    function updateQR() {
+      if (!qrData) return;
+      qrCode.update({
+        data: qrData,
+        width: parseInt(document.getElementById("size").value),
+        height: parseInt(document.getElementById("size").value),
+        dotsOptions: {
+          color: document.getElementById("color-dark").value,
+          type: document.getElementById("pattern-shape").value
+        },
+        cornersSquareOptions: {
+          color: document.getElementById("color-dark").value,
+          type: document.getElementById("eye-shape").value
+        },
+        backgroundOptions: {
+          color: document.getElementById("color-light").value
+        },
+        image: logoImage,
+        imageOptions: {
+          margin: 5,
+          opacity: parseFloat(document.getElementById("logo-opacity").value)
+        },
+        qrOptions: {
+          errorCorrectionLevel: document.getElementById("error-level").value
+        }
+      });
+      document.getElementById("download-png").disabled = false;
+      document.getElementById("download-svg").disabled = false;
+    }
+
+    async function uploadFile(file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const response = await fetch("/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.url) {
+          qrData = data.url;
+          updateQR();
+        } else {
+          alert("Error al subir archivo: " + (data.error || JSON.stringify(data)));
+        }
+      } catch (error) {
+        alert("Error en la conexión con el servidor.");
+        console.error(error);
+      }
+    }
+
+    document.getElementById("file-input").addEventListener("change", function() {
+      if (this.files.length === 0) return;
+      uploadFile(this.files[0]);
+    });
+
+    document.getElementById("logo-upload").addEventListener("change", function() {
+      if (this.files.length === 0) {
+        logoImage = "";
+        updateQR();
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        logoImage = reader.result;
+        updateQR();
+      };
+      reader.readAsDataURL(this.files[0]);
+    });
+
+    document.getElementById("size").addEventListener("input", updateQR);
+    document.getElementById("color-dark").addEventListener("input", updateQR);
+    document.getElementById("color-light").addEventListener("input", updateQR);
+    document.getElementById("error-level").addEventListener("change", updateQR);
+    document.getElementById("eye-shape").addEventListener("change", updateQR);
+    document.getElementById("pattern-shape").addEventListener("change", updateQR);
+    document.getElementById("logo-opacity").addEventListener("input", updateQR);
+
+    document.getElementById("download-png").addEventListener("click", () => {
+      setTimeout(() => qrCode.download({ name: "codigo_qr", extension: "png" }), 200);
+    });
+
+    document.getElementById("download-svg").addEventListener("click", () => {
+      setTimeout(() => qrCode.download({ name: "codigo_qr", extension: "svg" }), 200);
+    });
+
+    document.getElementById("generate-url-btn").addEventListener("click", async () => {
+      const urlInput = document.getElementById("url-input").value.trim();
+      if (!urlInput) {
+        alert("Por favor ingresa una URL válida");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("url", urlInput);
+      try {
+        const response = await fetch("/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.url) {
+          qrData = data.url;
+          updateQR();
+        } else {
+          alert("Error: " + (data.error || JSON.stringify(data)));
+        }
+      } catch (e) {
+        alert("Error en la conexión con el servidor.");
+        console.error(e);
+      }
+    });
+  </script>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

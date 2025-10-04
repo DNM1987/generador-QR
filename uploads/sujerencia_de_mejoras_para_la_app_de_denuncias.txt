@@ -1,0 +1,15 @@
+porción de código para el token: print(secrets.token_hex(16))
+
+para crear denuncias:
+
+en el input de numero de denuncia dejar que se utilice caracteres especiales por ejemplo / 
+
+que solo se coloque las fecha de acta. las  otras fechas se colocaran cuando se edite la denuncia.
+
+en la parte editar solo me deja el numero 
+
+y en la parte de buscar no me muestra la denuncia 
+
+
+fecha_vencimiento=request.form['fecha_vencimiento'],  # Campo de fecha de vencimiento
+ fecha_infraccion=request.form['fecha_infraccion']       # Campo de fecha de infracción
